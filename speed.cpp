@@ -32,6 +32,16 @@ void speed::openFiles(){
   for(int i = 1; i < 100; i++) { // Copy data into array memory.
       gps >> gpsSpeed[i];
       watch >> watchSpeed[i];
+
+      if(gpsSpeed[i] >= i + 0.5 && gpsSpeed[i] <= i - 0.5){
+          gpsSpeed[i] = actualSpeedArr[i];
+          cout<<"Caught error."<<endl;
+      }
+
+      if(watchSpeed[i] >= i + 0.5 && watchSpeed[i] <= i - 0.5){
+          watchSpeed[i] = actualSpeedArr[i];
+          cout<<"Caught error."<<endl;
+      }
   }
   gps.close(); // Discontinue using the file, it is now in our array.
   watch.close(); // Ditto
@@ -40,28 +50,22 @@ void speed::openFiles(){
 }
 
 
-double speed::findGPSAcc(){
+double speed::findAcc(){
   gpsAcc = (gpsSpeed[99] - gpsSpeed[0])/100;
-
-  return gpsAcc;
-}
-
-
-double speed::findWatchAcc(){
   watchAcc = (watchSpeed[99] - watchSpeed[0])/100;
+  avgAcc = (gpsAcc + watchAcc)/2;
 
-  return watchAcc;
+  return avgAcc;
 }
 
 
-double speed::actualSpeed(){
-  avgAcc = (findGPSAcc() + findWatchAcc())/2;
+void speed::actualSpeed(){
   actualSpeedArr[0] = 0;
   for(int i=1; i<100; i++){
-    actualSpeedArr[i] = avgAcc * i;
-    // cout<<"The estimated actual speed at time "<<i<<" is "<<actualSpeedArr[i]<<"."<<endl;
+    actualSpeedArr[i] = findAcc() * i;
   }
-  return avgAcc;
+
+  return;
 }
 
 
@@ -109,20 +113,24 @@ void speed::searchByWatchSpeed(int speed){
 
 void speed::display(){
   for(int i=1; i<100; i++){
-    if(gpsSpeed[i] <= i + 0.5 && gpsSpeed[i] >= i - 0.5){
-      cout<<"The speed at time "<<i<<" seconds is "<<gpsSpeed[i]<<"."<<endl;
-    }else{
-      cout<<"The data "<<gpsSpeed[i]<<" at the time "<<i<<" seconds is wrong."<<endl;
+    if(gpsSpeed[i] > i + 0.5 || gpsSpeed[i] < i - 0.5){
+      cout<<"The GPS data "<<gpsSpeed[i]<<" at the time "<<i<<" seconds is wrong."<<endl;
+      gpsSpeed[i] = actualSpeedArr[i];
     }
-
-    if(watchSpeed[i] <= i + 0.5 && watchSpeed[i] >= i - 0.5){
-      cout<<"The speed at time "<<i<<" seconds is "<<watchSpeed[i]<<"."<<endl;
-    }else{
-      cout<<"The data "<<watchSpeed[i]<<" at the time "<<i<<" seconds is wrong."<<endl;
+    
+    if(watchSpeed[i] > i + 0.5 || watchSpeed[i] < i - 0.5){
+      cout<<"The watch data "<<watchSpeed[i]<<" at the time "<<i<<" seconds is wrong."<<endl;
+      watchSpeed[i] = actualSpeedArr[i];
     }
-
-    cout<<endl;
   }
+
+  cout<<endl;
+
+  for(int i=1; i<100; i++){
+    cout<<"The estimated actual data at time "<<i<<" seconds is "<<actualSpeedArr[i]<<"."<<endl;
+  }
+
+  cout<<endl;
 
   return;
 }

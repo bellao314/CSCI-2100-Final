@@ -15,9 +15,8 @@ public:
   ~speed();
 
   void openFiles();
-  double findGPSAcc();
-  double findWatchAcc();
-  double actualSpeed();
+  double findAcc();
+  void actualSpeed();
   void searchByTime(int);
   void searchByGPSSpeed(int);
   void searchByWatchSpeed(int);
