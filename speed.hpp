@@ -10,14 +10,16 @@ private:
   double gpsAcc;
   double watchAcc;
   double avgAcc;
-public:
-  speed();
-  ~speed();
 
   void openFiles();
   void calcAcc();
   void fixErrors();
   void actualSpeed();
+  void search(int, double[100], int, int);
+public:
+  speed();
+  ~speed();
+
   void searchByTime(int);
   void searchByGPSSpeed(int);
   void searchByWatchSpeed(int);

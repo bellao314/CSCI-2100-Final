@@ -15,12 +15,11 @@ speed::speed(){
   fixErrors(); // Find outliers of the data and replace with expected value (based on average acceleration)
 
   actualSpeed(); // Calculate actual speed for each second.
-  display(); // Display all data.
 }
 
 
 speed::~speed(){
-  cout << "Destructor called" << endl;
+  cout << "Destructor called." << endl;
 }
 
 
@@ -65,14 +64,13 @@ void speed::fixErrors() {
     double estimatedSpeed = time * avgAcc; // seconds * meters/second^2 = meters/sec
     double upperBound = estimatedSpeed + range; // Upper boundary for realistic values
     double lowerBound = estimatedSpeed - range; // Lower boundary for realistic values
+
     if(gpsSpeed[time] > upperBound || gpsSpeed[time] < lowerBound){ // If above or below 3 standard deviations away from average, it is anomalous.
       cout << "The GPS data " << gpsSpeed[time] << " at the time " << time << " seconds is wrong." << endl;
-      gpsSpeed[time] = estimatedSpeed;
     }
     
     if(watchSpeed[time] > upperBound || watchSpeed[time] < lowerBound){// If above or below 3 standard deviations away from average, it is anomalous.
       cout << "The watch data " << watchSpeed[time] << " at the time " << time << " seconds is wrong." << endl;
-      watchSpeed[time] = estimatedSpeed;
     }
   }
   cout << endl;
@@ -101,39 +99,36 @@ void speed::searchByTime(int time){
 }
 
 
-void speed::searchByGPSSpeed(int speed){
-  for(int time = 0; time < 100; time++){
-    int currentGPSSpeed = floor(gpsSpeed[time]);
-    if(currentGPSSpeed == speed){
-      cout << "Found it! The corresponding index is " << time << " for a recorded GPS speed of " << gpsSpeed[time] << "." << endl;
-      cout << endl;
-      return;
-    }
-  }
-
-  cout << "Cannot find the data." << endl;
-  cout << endl;
+void speed::searchByGPSSpeed(int target){
+  cout << "GPS: ";
+  search(target, gpsSpeed, 0, 99);
 
   return;
 }
 
-
-void speed::searchByWatchSpeed(int speed){
-  for(int time = 0; time < 100; time++){
-    int currentWatchSpeed = floor(watchSpeed[time]);
-    if(currentWatchSpeed == speed){
-      cout << "Found it! The corresponding index is " << time << " for a recorded watch speed of " << watchSpeed[time] << "." << endl;
-      cout << endl;
-      return;
-    }
-  }
-  
-  cout << "Cannot find the data." << endl;
-  cout << endl;
+void speed::searchByWatchSpeed(int target){
+  cout << "Watch: ";
+  search(target, watchSpeed, 0, 99);
 
   return;
 }
 
+void speed::search(int target, double arr[100], int left, int right) {
+ int middle = (left + right) / 2;
+
+ int closest = round(middle); // Find the closest whole number
+
+ if(left > right) {
+    cout << "Cannot find record." << endl;
+ } else if(target == closest) { // If arr[middle] is the closest data point to the target. You would never find anything if you had to type a super specific number like 3.98272382, so do a rough search.
+    cout << "Found it! The corresponding index is " << middle << " for a recorded speed of " << arr[middle] << "." << endl;
+ } else if(target > arr[middle]) {
+    search(target, arr, middle + 1, right);
+ } else if(target < arr[middle]) {
+    search(target, arr, left, middle - 1);
+ }
+ return;
+}
 
 void speed::display(){
   for(int time = 1; time < 100; time++){
