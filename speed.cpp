@@ -9,14 +9,18 @@ using namespace std;
 speed::speed(){
   gpsSpeed[0] = 0;
   watchSpeed[0] = 0;
-  openFiles();
-  actualSpeed();
-  display();
+  openFiles(); // Input all data.
+
+  calcAcc(); // Calculate average acceleration.
+  fixErrors(); // Find outliers of the data and replace with expected value (based on average acceleration)
+
+  actualSpeed(); // Calculate actual speed for each second.
+  display(); // Display all data.
 }
 
 
 speed::~speed(){
-  cout<<"Destructor called"<<endl;
+  cout << "Destructor called" << endl;
 }
 
 
@@ -28,41 +32,59 @@ void speed::openFiles(){
       cerr << "Error opening file(s)." << endl;
       return;
   }
-
-  for(int i = 1; i < 100; i++) { // Copy data into array memory.
-      gps >> gpsSpeed[i];
-      watch >> watchSpeed[i];
-
-      if(gpsSpeed[i] >= i + 0.5 && gpsSpeed[i] <= i - 0.5){
-          gpsSpeed[i] = actualSpeedArr[i];
-          cout<<"Caught error."<<endl;
-      }
-
-      if(watchSpeed[i] >= i + 0.5 && watchSpeed[i] <= i - 0.5){
-          watchSpeed[i] = actualSpeedArr[i];
-          cout<<"Caught error."<<endl;
-      }
+  gpsSpeed[0] = watchSpeed[0] = 0; // Speed is known to start at 1.
+  for(int time = 1; time < 100; time++) { // Copy data into array memory.
+      gps >> gpsSpeed[time];
+      watch >> watchSpeed[time];
   }
-  gps.close(); // Discontinue using the file, it is now in our array.
+  gps.close(); // Discontinue using the file, it is now in our array. Saves memory.
   watch.close(); // Ditto
 
   return;
 }
 
 
-double speed::findAcc(){
-  gpsAcc = (gpsSpeed[99] - gpsSpeed[0])/100;
-  watchAcc = (watchSpeed[99] - watchSpeed[0])/100;
-  avgAcc = (gpsAcc + watchAcc)/2;
+void speed::calcAcc(){
+  double sumDiff = 0; 
+  for(int time = 0; time < 99; time++) { // For all values in between each of the 100 entries
+      sumDiff += watchSpeed[time + 1] - watchSpeed[time]; // Add the difference between all watch times.
+      sumDiff += gpsSpeed[time + 1] - gpsSpeed[time]; // Add the difference between all gps times.
+  }
+  avgAcc = sumDiff / (99 * 2); // Average of all differences of both datasets, and there are 99 differences each.
+  
+  cout << "Average Acceleration is " << avgAcc << endl;
+  cout << endl;
 
-  return avgAcc;
+  return;
+}
+
+void speed::fixErrors() {
+  double stdDev = sqrt(0.1); // Variance is given as 0.1, standard deviation is sqrt(variance).
+  double range = 3 * stdDev; // 3 standard deviations accounts for 99.7% of all cases. It should be extremely unlikely to be in the 0.3% of data, especially for such a small dataset.
+  for(int time = 1; time < 100; time++){
+    double estimatedSpeed = time * avgAcc; // seconds * meters/second^2 = meters/sec
+    double upperBound = estimatedSpeed + range; // Upper boundary for realistic values
+    double lowerBound = estimatedSpeed - range; // Lower boundary for realistic values
+    if(gpsSpeed[time] > upperBound || gpsSpeed[time] < lowerBound){ // If above or below 3 standard deviations away from average, it is anomalous.
+      cout << "The GPS data " << gpsSpeed[time] << " at the time " << time << " seconds is wrong." << endl;
+      gpsSpeed[time] = estimatedSpeed;
+    }
+    
+    if(watchSpeed[time] > upperBound || watchSpeed[time] < lowerBound){// If above or below 3 standard deviations away from average, it is anomalous.
+      cout << "The watch data " << watchSpeed[time] << " at the time " << time << " seconds is wrong." << endl;
+      watchSpeed[time] = estimatedSpeed;
+    }
+  }
+  cout << endl;
+
+  return;
 }
 
 
 void speed::actualSpeed(){
   actualSpeedArr[0] = 0;
-  for(int i=1; i<100; i++){
-    actualSpeedArr[i] = findAcc() * i;
+  for(int time = 1; time < 100; time++){
+    actualSpeedArr[time] = avgAcc * time;
   }
 
   return;
@@ -70,67 +92,54 @@ void speed::actualSpeed(){
 
 
 void speed::searchByTime(int time){
-  cout<<"GPS Speed: "<<gpsSpeed[time]<<endl;
-  cout<<"Watch Speed: "<<watchSpeed[time]<<endl;
-  cout<<"Estimated Actual Speed: "<<actualSpeedArr[time]<<endl;
-  cout<<endl;
+  cout << "GPS Speed: " << gpsSpeed[time] << endl;
+  cout << "Watch Speed: " << watchSpeed[time] << endl;
+  cout << "Estimated Actual Speed: " << actualSpeedArr[time] << endl;
+  cout << endl;
   
   return;
 }
 
 
 void speed::searchByGPSSpeed(int speed){
-  for(int i=0; i<100; i++){
-    int currentGPSSpeed = floor(gpsSpeed[i]);
+  for(int time = 0; time < 100; time++){
+    int currentGPSSpeed = floor(gpsSpeed[time]);
     if(currentGPSSpeed == speed){
-      cout<<"Found it! The corresponding index is "<<i<<" for a recorded GPS speed of "<<gpsSpeed[i]<<"."<<endl;
-      cout<<endl;
+      cout << "Found it! The corresponding index is " << time << " for a recorded GPS speed of " << gpsSpeed[time] << "." << endl;
+      cout << endl;
       return;
     }
   }
 
-  cout<<"Cannot find the data."<<endl;
-  cout<<endl;
+  cout << "Cannot find the data." << endl;
+  cout << endl;
+
   return;
 }
 
 
 void speed::searchByWatchSpeed(int speed){
-  for(int i=0; i<100; i++){
-    int currentWatchSpeed = floor(watchSpeed[i]);
+  for(int time = 0; time < 100; time++){
+    int currentWatchSpeed = floor(watchSpeed[time]);
     if(currentWatchSpeed == speed){
-      cout<<"Found it! The corresponding index is "<<i<<" for a recorded watch speed of "<<watchSpeed[i]<<"."<<endl;
-      cout<<endl;
+      cout << "Found it! The corresponding index is " << time << " for a recorded watch speed of " << watchSpeed[time] << "." << endl;
+      cout << endl;
       return;
     }
   }
   
-  cout<<"Cannot find the data."<<endl;
-  cout<<endl;
+  cout << "Cannot find the data." << endl;
+  cout << endl;
+
   return;
 }
 
 
 void speed::display(){
-  for(int i=1; i<100; i++){
-    if(gpsSpeed[i] > i + 0.5 || gpsSpeed[i] < i - 0.5){
-      cout<<"The GPS data "<<gpsSpeed[i]<<" at the time "<<i<<" seconds is wrong."<<endl;
-      gpsSpeed[i] = actualSpeedArr[i];
-    }
-    
-    if(watchSpeed[i] > i + 0.5 || watchSpeed[i] < i - 0.5){
-      cout<<"The watch data "<<watchSpeed[i]<<" at the time "<<i<<" seconds is wrong."<<endl;
-      watchSpeed[i] = actualSpeedArr[i];
-    }
+  for(int time = 1; time < 100; time++){
+    cout << "The estimated actual data at time " << time << " seconds is " << actualSpeedArr[time] << "." << endl;
   }
-
-  cout<<endl;
-
-  for(int i=1; i<100; i++){
-    cout<<"The estimated actual data at time "<<i<<" seconds is "<<actualSpeedArr[i]<<"."<<endl;
-  }
-
-  cout<<endl;
+  cout << endl;
 
   return;
 }
