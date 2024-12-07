@@ -1,6 +1,5 @@
 #include <iostream>
 #include <fstream>
-#include <string>
 #include <cmath>
 #include "speed.hpp"
 using namespace std;
