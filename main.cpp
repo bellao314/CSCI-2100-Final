@@ -6,7 +6,7 @@ using namespace std;
 
 int main(){
   speed trip;
-  int speedInput, timeInput, choice;
+  int choice;
 
   cout << "Would you like to search for a certain speed (1), search by a specific time (2), or display all data (3)? Input 1, 2, or 3. Any other number to exit. ";
   cin >> choice;
@@ -14,15 +14,15 @@ int main(){
   while(choice == 1 || choice == 2 || choice == 3){ // If the previous answer was a menu option, continue looping.
     if(choice == 1){ // Search for specific speed
       cout << "What speed would you like to find? Input a whole number. ";
-      cin >> speedInput;
+      cin >> choice;
 
-      trip.searchByGPSSpeed(speedInput);
-      trip.searchByWatchSpeed(speedInput);
+      trip.searchByGPSSpeed(choice);
+      trip.searchByWatchSpeed(choice);
     }else if(choice == 2){ // Search for specific time
       cout << "What time would you like to search for? Input a whole number. ";
-      cin >> timeInput;
+      cin >> choice;
 
-      trip.searchByTime(timeInput);
+      trip.searchByTime(choice);
     } else if(choice == 3) { // Display all data
       trip.display();
     }
@@ -34,3 +34,4 @@ int main(){
 
   return 0;
 }
+

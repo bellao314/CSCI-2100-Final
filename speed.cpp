@@ -82,6 +82,7 @@ void speed::findErrors() {
 
 
 void speed::actualSpeed(){
+  // time = 0 is already input
   for(int time = 1; time < 100; time++){
     actualSpeedArr[time] = avgAcc * time; // m/s^2 * s = m/s
   }
