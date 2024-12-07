@@ -21,7 +21,7 @@ speed::speed(){
 
 
 speed::~speed(){
-  cout << "Destructor called." << endl;
+  cout << "Data cleared." << endl;
 }
 
 
