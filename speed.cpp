@@ -91,9 +91,13 @@ void speed::actualSpeed(){
 
 
 void speed::searchByTime(int time){ // Retrieve stored data at time requested
-  cout << "GPS Speed: " << gpsSpeed[time] << " m/s." << endl;
-  cout << "Watch Speed: " << watchSpeed[time] << " m/s." << endl;
-  cout << "Estimated Actual Speed: " << actualSpeedArr[time] << " m/s." << endl;
+  if(time >= 0 && time <= 99) {
+    cout << "GPS Speed: " << gpsSpeed[time] << " m/s." << endl;
+    cout << "Watch Speed: " << watchSpeed[time] << " m/s." << endl;
+    cout << "Estimated Actual Speed: " << actualSpeedArr[time] << " m/s." << endl;
+  } else {
+    cout << "Out of range." << endl;
+  }
   
   return;
 }
