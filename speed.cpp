@@ -53,7 +53,7 @@ void speed::calcAcc(){
   }
 
   avgAcc = sumDiff / (99 * 2); // Average of all differences of both datasets, and there are 99 differences each.
-  cout << "Average Acceleration is " << avgAcc << " m/s/s." << endl;
+  cout << "Average Acceleration is " << avgAcc << " m/s^2." << endl;
   cout << endl;
 
   return;
